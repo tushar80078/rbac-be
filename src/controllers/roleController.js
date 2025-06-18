@@ -41,8 +41,17 @@ const getRoleById = async (req, res) => {
       [id]
     );
 
+    // Filter out permissions that have no actual permissions (all values are 0/false)
+    const filteredPermissions = permissions.filter(
+      (permission) =>
+        permission.can_read ||
+        permission.can_create ||
+        permission.can_update ||
+        permission.can_delete
+    );
+
     const role = roles[0];
-    role.permissions = permissions;
+    role.permissions = filteredPermissions;
 
     res.json({
       success: true,
@@ -66,6 +75,33 @@ const createRole = async (req, res) => {
       return res.status(400).json({
         success: false,
         message: "Role name is required",
+      });
+    }
+
+    // Validate that at least one permission is selected
+    if (
+      !permissions ||
+      !Array.isArray(permissions) ||
+      permissions.length === 0
+    ) {
+      return res.status(400).json({
+        success: false,
+        message: "At least one permission must be selected",
+      });
+    }
+
+    const hasAnyPermission = permissions.some(
+      (permission) =>
+        permission.can_read ||
+        permission.can_create ||
+        permission.can_update ||
+        permission.can_delete
+    );
+
+    if (!hasAnyPermission) {
+      return res.status(400).json({
+        success: false,
+        message: "At least one permission must be selected for the role",
       });
     }
 

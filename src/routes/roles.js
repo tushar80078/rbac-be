@@ -19,7 +19,7 @@ router.get(
 router.get(
   "/:id",
   authMiddleware,
-  canRead("roles"),
+  // canRead("roles"),
   roleController.getRoleById
 );
 router.post("/", authMiddleware, canCreate("roles"), roleController.createRole);
