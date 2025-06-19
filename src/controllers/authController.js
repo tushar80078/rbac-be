@@ -181,9 +181,47 @@ const getProfile = async (req, res) => {
   }
 };
 
+// Regenerate admin password
+const regenerateAdminPassword = async (req, res) => {
+  try {
+    // Generate a new random password (e.g., 10 chars, alphanumeric)
+    const newPassword = Math.random().toString(36).slice(-10);
+    const hashedPassword = await hashPassword(newPassword);
+
+    // Update admin password in DB (assume username is 'admin')
+    const [result] = await pool.execute(
+      "UPDATE users SET password = ? WHERE username = 'admin'",
+      [hashedPassword]
+    );
+
+    if (result.affectedRows === 0) {
+      return res.status(404).json({
+        success: false,
+        message: "Admin user not found",
+      });
+    }
+
+    res.json({
+      success: true,
+      message: "Admin password regenerated successfully",
+      data: {
+        username: "admin",
+        password: newPassword,
+      },
+    });
+  } catch (error) {
+    console.error("Regenerate admin password error:", error);
+    res.status(500).json({
+      success: false,
+      message: "Failed to regenerate admin password",
+    });
+  }
+};
+
 module.exports = {
   login,
   logout,
   resetPassword,
   getProfile,
+  regenerateAdminPassword,
 };
